@@ -1,0 +1,13 @@
+pandas
+numpy
+pyarrow
+faiss-cpu    # or faiss-gpu if you have GPU + CUDA installed
+sentence-transformers
+tqdm
+pyyaml
+rapidfuzz
+langdetect
+streamlit
+plotly
+indic-transliteration
+deep-translator
