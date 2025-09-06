@@ -1,7 +1,7 @@
 pandas
 numpy
 pyarrow
-faiss-cpu    # or faiss-gpu if you have GPU + CUDA installed
+faiss-cpu
 sentence-transformers
 tqdm
 pyyaml
@@ -11,3 +11,5 @@ streamlit
 plotly
 indic-transliteration
 deep-translator
+matplotlib
+googletrans==4.0.0-rc1
