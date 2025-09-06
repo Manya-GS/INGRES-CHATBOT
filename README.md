@@ -17,7 +17,7 @@ It supports **English, Hindi, and Kannada** queries, including **state-level, di
 ---
 
 ## 📸 Demo
-👉 *(Add your Streamlit app link here after deployment)*
+👉 *https://ingres-chatbot-47b9jlyfyemcu7934hevpy.streamlit.app/*
 
 Example Queries:
 - `groundwater level in Delhi 2024`
@@ -38,4 +38,4 @@ Example Queries:
 
 ---
 
-## 📂 Project Structure
+
