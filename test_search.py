@@ -5,9 +5,9 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 from rapidfuzz import process, fuzz
 
-# -----------------------
+
 # Load Data + Precompute
-# -----------------------
+
 CSV_PATH = "data/ingres_central_clean_district_level.csv"
 INDEX_PATH = "data/ingres_index.faiss"
 META_PATH = "data/ingres_meta.json"
@@ -26,9 +26,8 @@ index = faiss.read_index(INDEX_PATH)
 with open(META_PATH, "r", encoding="utf-8") as f:
     META = json.load(f)
 
-# -----------------------
 # Helper Functions
-# -----------------------
+
 def round_stage(val):
     return round(val, 2) if pd.notna(val) else "N/A"
 
@@ -71,9 +70,7 @@ def semantic_search(query, top_k=5):
         })
     return results
 
-# -----------------------
 # Main Query Function
-# -----------------------
 def search_ingres(query: str, requested_years=None):
     """
     Search groundwater data.

@@ -5,28 +5,25 @@ from test_search import search_ingres
 from langdetect import detect
 import re
 from datetime import datetime
+import io
 
-# ---------------------
 # Google Translate fallback
-# ---------------------
 try:
     from googletrans import Translator
     translator = Translator()
 except ImportError:
     translator = None
-
-# ---------------------
 # Page setup
-# ---------------------
+
 st.set_page_config(page_title="💧 INGRES Groundwater Dashboard", layout="wide")
 st.title("💧 INGRES Groundwater Dashboard")
 st.markdown(
     "Ask groundwater questions in **English / Hindi / Kannada**. Supports **state, district, year, and comparison** queries."
 )
 
-# ---------------------
+
 # Translation helper
-# ---------------------
+
 def translate_text(text, lang_code):
     if translator and lang_code in ["hi", "kn"]:
         try:
@@ -35,9 +32,7 @@ def translate_text(text, lang_code):
             return text
     return text
 
-# ---------------------
 # Extract years from query
-# ---------------------
 def extract_years(query):
     years = []
     ranges = re.findall(r'(\b\d{4})\s*-\s*(\d{4}\b)', query)
@@ -49,9 +44,7 @@ def extract_years(query):
             years.append(int(y))
     return sorted(set(years))
 
-# ---------------------
 # Responsive bar chart
-# ---------------------
 def plot_bar_chart(df_data, group_col, value_col, title, color, lang):
     if df_data.empty or group_col not in df_data.columns or value_col not in df_data.columns:
         st.info(translate_text("No data to display", lang))
@@ -70,9 +63,7 @@ def plot_bar_chart(df_data, group_col, value_col, title, color, lang):
     plt.tight_layout()
     st.pyplot(fig, use_container_width=True)
 
-# ---------------------
 # Responsive pie chart
-# ---------------------
 def plot_pie_chart(df_data, title, lang):
     if df_data.empty or "category_derived" not in df_data.columns:
         st.info(translate_text("No data to display", lang))
@@ -101,9 +92,8 @@ def plot_pie_chart(df_data, title, lang):
     plt.tight_layout()
     st.pyplot(fig, use_container_width=True)
 
-# ---------------------
 # Summary helper
-# ---------------------
+
 def show_summary(df_data, region_name, lang):
     if df_data.empty:
         return translate_text(f"No data available for {region_name}.", lang)
@@ -125,9 +115,7 @@ def show_summary(df_data, region_name, lang):
     )
     return translate_text(summary_text, lang)
 
-# ---------------------
 # User query input
-# ---------------------
 query = st.text_input("💬 Ask your groundwater question (English / Hindi / Kannada):")
 
 if query:
@@ -167,17 +155,51 @@ if query:
             with col2:
                 plot_pie_chart(data, "Category Distribution Across Compared Districts", lang)
 
-# ---------------------
 # Feedback Section
-# ---------------------
-st.markdown("---")
-st.subheader("💬 User Feedback")
-feedback = st.text_area("Share your feedback about this chatbot here:")
+with st.expander("💬 Give Feedback (optional)"):
+    feedback = st.text_area("Share your feedback about this chatbot here:")
 
-if st.button("Submit Feedback"):
-    if feedback.strip():
-        with open("feedback.txt", "a", encoding="utf-8") as f:
-            f.write(f"{datetime.now()} - {feedback.strip()}\n")
-        st.success("✅ Thank you! Your feedback has been submitted.")
-    else:
-        st.warning("⚠️ Please enter some feedback before submitting.")
+    if st.button("Submit Feedback"):
+        if feedback.strip():
+            with open("feedback.txt", "a", encoding="utf-8") as f:
+                f.write(f"{datetime.now()} - {feedback.strip()}\n")
+            st.success("✅ Thank you! Your feedback has been submitted.")
+        else:
+            st.warning("⚠️ Please enter some feedback before submitting.")
+
+    if st.checkbox("📂 Show Submitted Feedback"):
+        try:
+            with open("feedback.txt", "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            # Parse feedback into structured records
+            records = []
+            for line in lines:
+                if " - " in line:
+                    time, msg = line.split(" - ", 1)
+                    records.append({"Time": time.strip(), "Feedback": msg.strip()})
+
+            if records:
+                df = pd.DataFrame(records)
+                st.dataframe(df.tail(10))  # Show last 10 feedbacks
+
+                # Download all feedback as CSV
+                csv_buffer = io.StringIO()
+                df.to_csv(csv_buffer, index=False)
+                st.download_button(
+                    label="⬇️ Download All Feedback as CSV",
+                    data=csv_buffer.getvalue(),
+                    file_name="feedback.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.info("No feedback available yet.")
+
+        except FileNotFoundError:
+            st.info("No feedback available yet.")
+
+# Small thank-you note
+st.markdown(
+    "<p style='text-align:center; color:gray;'> Feedback is optional, but it helps improve this chatbot 💡</p>",
+    unsafe_allow_html=True
+)
