@@ -155,51 +155,57 @@ if query:
             with col2:
                 plot_pie_chart(data, "Category Distribution Across Compared Districts", lang)
 
+# ---------------------
 # Feedback Section
-with st.expander("💬 Give Feedback (optional)"):
-    feedback = st.text_area("Share your feedback about this chatbot here:")
+# ---------------------
+st.markdown("---")
+st.subheader("💬 User Feedback")
 
-    if st.button("Submit Feedback"):
-        if feedback.strip():
-            with open("feedback.txt", "a", encoding="utf-8") as f:
-                f.write(f"{datetime.now()} - {feedback.strip()}\n")
-            st.success("✅ Thank you! Your feedback has been submitted.")
-        else:
-            st.warning("⚠️ Please enter some feedback before submitting.")
+# Feedback input (optional)
+feedback = st.text_area("Share your feedback about this chatbot (optional):")
 
-    if st.checkbox("📂 Show Submitted Feedback"):
+if st.button("Submit Feedback"):
+    if feedback.strip():
+        with open("feedback.txt", "a", encoding="utf-8") as f:
+            f.write(f"{datetime.now()} - {feedback.strip()}\n")
+        st.success("✅ Thank you! Your feedback has been submitted.")
+    else:
+        st.info("ℹ️ Feedback is optional, you can skip if you want.")
+
+# Admin-only view of feedback
+st.markdown("### 🔐 Admin Access")
+
+try:
+    admin_password = st.secrets["admin"]["password"]
+except Exception:
+    admin_password = None
+
+if st.checkbox("📂 Show all feedback (Admin only)"):
+    password = st.text_input("Enter admin password", type="password")
+    if admin_password and password == admin_password:
         try:
             with open("feedback.txt", "r", encoding="utf-8") as f:
-                lines = f.readlines()
+                feedback_lines = f.readlines()
 
-            # Parse feedback into structured records
-            records = []
-            for line in lines:
-                if " - " in line:
-                    time, msg = line.split(" - ", 1)
-                    records.append({"Time": time.strip(), "Feedback": msg.strip()})
+            if feedback_lines:
+                # Display feedback
+                st.text("".join(feedback_lines))
 
-            if records:
-                df = pd.DataFrame(records)
-                st.dataframe(df.tail(10))  # Show last 10 feedbacks
+                # Convert to DataFrame
+                df_feedback = pd.DataFrame([line.strip().split(" - ", 1) for line in feedback_lines],
+                                           columns=["Timestamp", "Feedback"])
 
-                # Download all feedback as CSV
-                csv_buffer = io.StringIO()
-                df.to_csv(csv_buffer, index=False)
+                # Download as CSV
+                csv = df_feedback.to_csv(index=False).encode("utf-8")
                 st.download_button(
-                    label="⬇️ Download All Feedback as CSV",
-                    data=csv_buffer.getvalue(),
+                    label="📥 Download Feedback (CSV)",
+                    data=csv,
                     file_name="feedback.csv",
                     mime="text/csv"
                 )
             else:
-                st.info("No feedback available yet.")
-
+                st.info("No feedback submitted yet.")
         except FileNotFoundError:
-            st.info("No feedback available yet.")
-
-# Small thank-you note
-st.markdown(
-    "<p style='text-align:center; color:gray;'> Feedback is optional, but it helps improve this chatbot 💡</p>",
-    unsafe_allow_html=True
-)
+            st.info("No feedback submitted yet.")
+    elif password:
+        st.error("❌ Wrong password")
